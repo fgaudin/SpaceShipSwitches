@@ -1,7 +1,14 @@
 #include <Arduino.h>
+#include <SoftwareSerial.h>
 
-const int pinLatch = 12;  // LOW = Load, HIGH = shift 
-const int pinClk = 13;
+#define DEBUG 1
+
+const int pinDebugRx = 12;
+const int pinDebugTx = 13;
+SoftwareSerial SerialDebug(pinDebugRx, pinDebugTx); // RX, TX
+
+const int pinLatch = 10;  // LOW = Load, HIGH = shift 
+const int pinClk = 11;
 
 const int pinData[] = {2, 3};  // list of digital pins
 const int registerCount = sizeof(pinData) / sizeof(int);
@@ -15,8 +22,10 @@ unsigned long lastDebounceTime[registerCount];  // the last time the output pin 
 unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
 
 void setup() {
-  Serial.begin(115200);
-  Serial.println("Starting up");
+  if (DEBUG) {
+    SerialDebug.begin(38400);
+    SerialDebug.println("Starting up");
+  }
   pinMode(pinLatch, OUTPUT);
   pinMode(pinClk, OUTPUT);
   digitalWrite(pinLatch, HIGH);
@@ -62,10 +71,15 @@ void loop() {
   }
 
   if (send) {
-    for(int i=0; i<registerCount; ++i) {
-      Serial.println(registerState[i], BIN);
+    if (DEBUG) {
+      SerialDebug.print('[');
+      for(int i=0; i<registerCount; ++i) {
+        char dataString[4] = {0};
+        sprintf(dataString, "%04X", registerState[i]);
+        SerialDebug.print(dataString);
+      }
+      SerialDebug.print(']');
     }
-    Serial.println();
     send = false;
   }
 }

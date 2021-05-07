@@ -1,0 +1,21 @@
+Code to handle a lot of switches on an arduino.
+
+Each pin declared in main.cpp:pinData should be receiving data from 2 daisy 
+chained 74HC165 shift registers.
+
+If a pin is declared and not wired to shift registers, it should be grounded.
+
+Latches all wired to pin 10.
+Clocks all wired to pin 11.
+
+Data are sent through the serial port as [AAAABBBB...] where A is the 2 bytes 
+received on pin 2, B the 2 bytes received on pin 3, etc.
+
+You can debug by connecting another Arduino on port 12 and 13 with that code:
+https://github.com/fgaudin/ArduinoDebugger
+
+This can handle up to 128 switches.
+
+References:
+- http://www.martyncurrey.com/arduino-serial-part-1/
+- http://www.martyncurrey.com/arduino-serial-part-2-serial-data/
