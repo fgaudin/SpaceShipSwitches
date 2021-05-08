@@ -26,6 +26,9 @@ void setup() {
     SerialDebug.begin(38400);
     SerialDebug.println("Starting up");
   }
+  // data link
+  Serial.begin(115200);
+
   pinMode(pinLatch, OUTPUT);
   pinMode(pinClk, OUTPUT);
   digitalWrite(pinLatch, HIGH);
@@ -73,11 +76,14 @@ void loop() {
   if (send) {
     if (DEBUG) {
       SerialDebug.print('[');
+      Serial.print('[');
       for(int i=0; i<registerCount; ++i) {
         char dataString[4] = {0};
         sprintf(dataString, "%04X", registerState[i]);
         SerialDebug.print(dataString);
+        Serial.print(dataString);
       }
+      Serial.print(']');
       SerialDebug.print(']');
     }
     send = false;
