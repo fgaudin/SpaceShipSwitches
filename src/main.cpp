@@ -74,18 +74,16 @@ void loop() {
   }
 
   if (send) {
-    if (DEBUG) {
-      SerialDebug.print('[');
-      Serial.print('[');
-      for(int i=0; i<registerCount; ++i) {
-        char dataString[4] = {0};
-        sprintf(dataString, "%04X", registerState[i]);
-        SerialDebug.print(dataString);
-        Serial.print(dataString);
-      }
-      Serial.print(']');
-      SerialDebug.print(']');
+    if (DEBUG) SerialDebug.print('[');
+    Serial.print('[');
+    for(int i=0; i<registerCount; ++i) {
+      char dataString[4] = {0};
+      sprintf(dataString, "%04X", registerState[i]);
+      if (DEBUG) SerialDebug.print(dataString);
+      Serial.print(dataString);
     }
+    Serial.print(']');
+    if (DEBUG) SerialDebug.print(']');
     send = false;
   }
 }
