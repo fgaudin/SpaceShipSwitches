@@ -1,11 +1,7 @@
 #include <Arduino.h>
-#include <SoftwareSerial.h>
+#include <KerbalSimpit.h>
 
 #define DEBUG 1
-
-const int pinDebugRx = 12;
-const int pinDebugTx = 13;
-SoftwareSerial SerialDebug(pinDebugRx, pinDebugTx); // RX, TX
 
 const int pinLatch = 10;  // LOW = Load, HIGH = shift 
 const int pinClk = 11;
@@ -16,18 +12,20 @@ const int registerCount = sizeof(pinData) / sizeof(int);
 uint16_t registerState[registerCount]; // the current reading from the input pin
 uint16_t lastRegisterState[registerCount];   // the previous reading from the registers
 
-// the following variables are unsigned longs because the time, measured in
-// milliseconds, will quickly become a bigger number than can be stored in an int.
 unsigned long lastDebounceTime[registerCount];  // the last time the output pin was toggled
 unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
 
+KerbalSimpit mySimpit(Serial);
+
+bool initialized = false;
+
 void setup() {
-  if (DEBUG) {
-    SerialDebug.begin(38400);
-    SerialDebug.println("Starting up");
-  }
-  // data link
   Serial.begin(115200);
+
+  while (!mySimpit.init()) {
+    delay(100);
+  }
+  mySimpit.printToKSP("Switches connected", PRINT_TO_SCREEN);
 
   pinMode(pinLatch, OUTPUT);
   pinMode(pinClk, OUTPUT);
@@ -41,7 +39,6 @@ void setup() {
 }
 
 void loop() {
-  bool send = false;
   digitalWrite(pinLatch, LOW);  // load register
   digitalWrite(pinLatch, HIGH);  // shift register
 
@@ -58,6 +55,10 @@ void loop() {
       digitalWrite(pinClk, HIGH);
   }
 
+  uint16_t changed;
+  uint16_t mask = 1;
+  bool value;
+
   for(uint8_t i=0; i<registerCount; ++i) {
     if (incoming[i] != lastRegisterState[i]) {
       // reset the debouncing timer
@@ -66,24 +67,57 @@ void loop() {
 
     if ((millis() - lastDebounceTime[i]) > debounceDelay) {
       if (incoming[i] != registerState[i]) {
+        changed = incoming[i] ^ registerState[i];
+        for (uint8_t j = 0; j < 16; ++j) {
+          if (changed & mask || !initialized) {
+            value = ((incoming[i] & mask) > 0);
+            #if DEBUG
+            char debug[12] = "switch ";
+            itoa(j + i * 16, &debug[7], 10);
+            mySimpit.printToKSP(debug);
+            #endif
+            switch (j + i * 16)
+            {
+              case 16:
+                if (value) mySimpit.activateAction(GEAR_ACTION);
+                else mySimpit.deactivateAction(GEAR_ACTION);
+              break;
+              case 17:
+                if (value) mySimpit.activateCAG(1);
+                else mySimpit.deactivateCAG(1);
+              break;
+              case 18:
+                if (value) mySimpit.activateCAG(3);
+                else mySimpit.deactivateCAG(3);
+              break;
+              case 19:
+                if (value) mySimpit.activateCAG(2);
+                else mySimpit.deactivateCAG(2);
+              break;
+              case 22:
+                if (value) mySimpit.activateAction(BRAKES_ACTION);
+                else mySimpit.deactivateAction(BRAKES_ACTION);
+              break;
+              case 23:
+                if (value) mySimpit.toggleAction(STAGE_ACTION);
+              break;
+              case 26:
+                if (value) mySimpit.toggleAction(SAS_ACTION);
+              break;
+              case 27:
+                if (value) mySimpit.toggleAction(RCS_ACTION);
+              break;
+              case 28:
+                if (value) mySimpit.toggleAction(LIGHT_ACTION);
+              break;
+            }
+          }
+          mask = mask << 1;
+        }
         registerState[i] = incoming[i];
-        send = true;
       }
     }
     lastRegisterState[i] = incoming[i];
   }
-
-  if (send) {
-    if (DEBUG) SerialDebug.print('[');
-    Serial.print('[');
-    for(int i=0; i<registerCount; ++i) {
-      char dataString[4] = {0};
-      sprintf(dataString, "%04X", registerState[i]);
-      if (DEBUG) SerialDebug.print(dataString);
-      Serial.print(dataString);
-    }
-    Serial.print(']');
-    if (DEBUG) SerialDebug.print(']');
-    send = false;
-  }
+  initialized = true;
 }
