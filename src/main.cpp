@@ -56,7 +56,7 @@ void loop() {
   }
 
   uint16_t changed;
-  uint16_t mask = 1;
+  uint16_t mask;
   bool value;
 
   for(uint8_t i=0; i<registerCount; ++i) {
@@ -64,6 +64,8 @@ void loop() {
       // reset the debouncing timer
       lastDebounceTime[i] = millis();
     }
+
+    mask = 1;
 
     if ((millis() - lastDebounceTime[i]) > debounceDelay) {
       if (incoming[i] != registerState[i]) {
@@ -109,6 +111,30 @@ void loop() {
               break;
               case 28:
                 if (value) mySimpit.toggleAction(LIGHT_ACTION);
+              break;
+              case 24: // ascent mode
+                if (value) {
+                  mySimpit.deactivateCAG(9);
+                  mySimpit.deactivateCAG(10);
+                }
+              break;
+              case 30: // orbit mode
+                if (value) {
+                  mySimpit.activateCAG(9);
+                  mySimpit.deactivateCAG(10);
+                }
+              break;
+              case 31: // descent mode
+                if (value) {
+                  mySimpit.deactivateCAG(9);
+                  mySimpit.activateCAG(10);
+                }
+              break;
+              case 20: // docking mode
+                if (value) {
+                  mySimpit.activateCAG(9);
+                  mySimpit.activateCAG(10);
+                }
               break;
             }
           }
