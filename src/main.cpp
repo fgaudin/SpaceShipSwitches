@@ -19,6 +19,10 @@ KerbalSimpit mySimpit(Serial);
 
 bool initialized = false;
 
+bool staging = false;
+
+void messageHandler(byte messageType, byte msg[], byte msgSize);
+
 void setup() {
   Serial.begin(115200);
 
@@ -26,6 +30,8 @@ void setup() {
     delay(100);
   }
   mySimpit.printToKSP("Switches connected", PRINT_TO_SCREEN);
+  mySimpit.inboundHandler(messageHandler);
+  mySimpit.registerChannel(CAGSTATUS_MESSAGE);
 
   pinMode(pinLatch, OUTPUT);
   pinMode(pinClk, OUTPUT);
@@ -39,6 +45,8 @@ void setup() {
 }
 
 void loop() {
+  mySimpit.update();
+
   digitalWrite(pinLatch, LOW);  // load register
   digitalWrite(pinLatch, HIGH);  // shift register
 
@@ -80,6 +88,12 @@ void loop() {
             #endif
             switch (j + i * 16)
             {
+              case 8:
+                if (value) mySimpit.deactivateCAG(243);
+              break;
+              case 9:
+                if (value) mySimpit.activateCAG(243);
+              break;
               case 16:
                 if (value) mySimpit.activateAction(GEAR_ACTION);
                 else mySimpit.deactivateAction(GEAR_ACTION);
@@ -92,16 +106,16 @@ void loop() {
                 if (value) mySimpit.activateCAG(3);
                 else mySimpit.deactivateCAG(3);
               break;
-              case 19:
-                if (value) mySimpit.activateCAG(2);
-                else mySimpit.deactivateCAG(2);
+              case 19: // staging toggle
+                if (value) mySimpit.activateCAG(242);
+                else mySimpit.deactivateCAG(242);
               break;
               case 22:
                 if (value) mySimpit.activateAction(BRAKES_ACTION);
                 else mySimpit.deactivateAction(BRAKES_ACTION);
               break;
               case 23:
-                if (value) mySimpit.toggleAction(STAGE_ACTION);
+                if (value && staging) mySimpit.toggleAction(STAGE_ACTION);
               break;
               case 26:
                 if (value) mySimpit.toggleAction(SAS_ACTION);
@@ -114,26 +128,26 @@ void loop() {
               break;
               case 24: // ascent mode
                 if (value) {
-                  mySimpit.deactivateCAG(9);
-                  mySimpit.deactivateCAG(10);
+                  mySimpit.deactivateCAG(240);
+                  mySimpit.deactivateCAG(241);
                 }
               break;
               case 30: // orbit mode
                 if (value) {
-                  mySimpit.activateCAG(9);
-                  mySimpit.deactivateCAG(10);
+                  mySimpit.activateCAG(240);
+                  mySimpit.deactivateCAG(241);
                 }
               break;
               case 31: // descent mode
                 if (value) {
-                  mySimpit.deactivateCAG(9);
-                  mySimpit.activateCAG(10);
+                  mySimpit.deactivateCAG(240);
+                  mySimpit.activateCAG(241);
                 }
               break;
               case 20: // docking mode
                 if (value) {
-                  mySimpit.activateCAG(9);
-                  mySimpit.activateCAG(10);
+                  mySimpit.activateCAG(240);
+                  mySimpit.activateCAG(241);
                 }
               break;
             }
@@ -146,4 +160,15 @@ void loop() {
     lastRegisterState[i] = incoming[i];
   }
   initialized = true;
+}
+
+void messageHandler(byte messageType, byte msg[], byte msgSize) {
+  switch(messageType) {
+    case CAGSTATUS_MESSAGE:
+      if (msgSize == sizeof(cagStatusMessage)) {
+        cagStatusMessage status = parseCAGStatusMessage(msg);
+        staging = status.is_action_activated(242);
+      }
+    break;
+  }
 }
