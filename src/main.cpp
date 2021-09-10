@@ -6,7 +6,7 @@
 const int pinLatch = 10;  // LOW = Load, HIGH = shift 
 const int pinClk = 11;
 
-const int pinData[] = {2, 3};  // list of digital pins
+const int pinData[] = {3};  // list of digital pins
 const int registerCount = sizeof(pinData) / sizeof(int);
 
 uint16_t registerState[registerCount]; // the current reading from the input pin
@@ -88,63 +88,63 @@ void loop() {
             #endif
             switch (j + i * 16)
             {
-              case 8:
+              case 100:
                 if (value) mySimpit.deactivateCAG(243);
               break;
-              case 9:
+              case 101:
                 if (value) mySimpit.activateCAG(243);
               break;
-              case 16:
+              case 0:
                 if (value) mySimpit.activateAction(GEAR_ACTION);
                 else mySimpit.deactivateAction(GEAR_ACTION);
               break;
-              case 17:
+              case 1:
                 if (value) mySimpit.activateCAG(1);
                 else mySimpit.deactivateCAG(1);
               break;
-              case 18:
+              case 2:
                 if (value) mySimpit.activateCAG(3);
                 else mySimpit.deactivateCAG(3);
               break;
-              case 19: // staging toggle
+              case 3: // staging toggle
                 if (value) mySimpit.activateCAG(242);
                 else mySimpit.deactivateCAG(242);
               break;
-              case 22:
+              case 6:
                 if (value) mySimpit.activateAction(BRAKES_ACTION);
                 else mySimpit.deactivateAction(BRAKES_ACTION);
               break;
-              case 23:
+              case 7:
                 if (value && staging) mySimpit.toggleAction(STAGE_ACTION);
               break;
-              case 26:
+              case 10:
                 if (value) mySimpit.toggleAction(SAS_ACTION);
               break;
-              case 27:
+              case 11:
                 if (value) mySimpit.toggleAction(RCS_ACTION);
               break;
-              case 28:
+              case 12:
                 if (value) mySimpit.toggleAction(LIGHT_ACTION);
               break;
-              case 24: // ascent mode
+              case 8: // ascent mode
                 if (value) {
                   mySimpit.deactivateCAG(240);
                   mySimpit.deactivateCAG(241);
                 }
               break;
-              case 30: // orbit mode
+              case 14: // orbit mode
                 if (value) {
                   mySimpit.activateCAG(240);
                   mySimpit.deactivateCAG(241);
                 }
               break;
-              case 31: // descent mode
+              case 15: // descent mode
                 if (value) {
                   mySimpit.deactivateCAG(240);
                   mySimpit.activateCAG(241);
                 }
               break;
-              case 20: // docking mode
+              case 4: // docking mode
                 if (value) {
                   mySimpit.activateCAG(240);
                   mySimpit.activateCAG(241);

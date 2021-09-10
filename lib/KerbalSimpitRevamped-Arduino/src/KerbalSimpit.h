@@ -24,6 +24,7 @@ class KerbalSimpit
       @param serial The serial instance this instance will use to communicate
       with the plugin. Usually "Serial".
   */
+  // KerbalSimpit(Stream &serial, Stream &serialDbg);
   KerbalSimpit(Stream &serial);
   /** Initialise the serial connection.
       Performs handshaking with the plugin. Note that the KSPit library
@@ -134,6 +135,7 @@ class KerbalSimpit
   byte _outboundBuffer[MAX_PAYLOAD_SIZE];
   byte _outboundSize;
   Stream *_serial;
+  Stream *_serialDbg;
 
   enum ReceiveState_t
   {
