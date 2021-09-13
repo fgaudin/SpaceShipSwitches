@@ -24,7 +24,6 @@ class KerbalSimpit
       @param serial The serial instance this instance will use to communicate
       with the plugin. Usually "Serial".
   */
-  // KerbalSimpit(Stream &serial, Stream &serialDbg);
   KerbalSimpit(Stream &serial);
   /** Initialise the serial connection.
       Performs handshaking with the plugin. Note that the KSPit library
@@ -43,6 +42,9 @@ class KerbalSimpit
       This function sends a channel subscription message to the plugin,
       indicating that this device would like to receive messages send
       to a given channel.
+	  This function should only be called with an ID from the
+	  OutboundPackets enum. The IDs from the InboundPackets enum are only
+	  used when sending data to KSP and should not be registered.
       @param channelID The ID of the channel to subscribe to.
   */
   void registerChannel(byte channelID);
@@ -135,7 +137,6 @@ class KerbalSimpit
   byte _outboundBuffer[MAX_PAYLOAD_SIZE];
   byte _outboundSize;
   Stream *_serial;
-  Stream *_serialDbg;
 
   enum ReceiveState_t
   {
